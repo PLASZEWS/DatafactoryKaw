@@ -1,0 +1,66 @@
+{
+	"name": "ProductDatabaseToSilver",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "DataLake",
+						"type": "LinkedServiceReference"
+					},
+					"name": "FromBronze"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "ChangeDataType"
+				},
+				{
+					"name": "FilterOrderID"
+				},
+				{
+					"name": "RemoveDuplicate"
+				},
+				{
+					"name": "AddAddressParts"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          OrderID as string,",
+				"          Product as string,",
+				"          QuantityOrdered as string,",
+				"          PriceEach as string,",
+				"          OrderDate as string,",
+				"          PurchaseAddress as string,",
+				"          FileName as string,",
+				"          LoadDate as date",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     limit: 100,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'datalake',",
+				"     wildcardPaths:['Bronze/ProductDatabase']) ~> FromBronze",
+				"RemoveDuplicate cast(output(",
+				"          mycols as string,",
+				"          OrderID as integer,",
+				"          QuantityOrdered as integer,",
+				"          PriceEach as double,",
+				"          OrderDate as timestamp 'MM/dd/yy HH:mm',",
+				"          PurchaseAddress as string",
+				"     ),",
+				"     errors: true) ~> ChangeDataType",
+				"FromBronze filter(isInteger(OrderID)) ~> FilterOrderID",
+				"FilterOrderID aggregate(groupBy(mycols = sha2(256,columns())),",
+				"     each(match(true()), $$ = first($$))) ~> RemoveDuplicate",
+				"ChangeDataType derive({Street Address} = at(split(PurchaseAddress,','),1),",
+				"          City = at(split(PurchaseAddress,','),2),",
+				"          State = at(split(PurchaseAddress,','),3)) ~> AddAddressParts"
+			]
+		}
+	}
+}
