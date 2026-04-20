@@ -145,6 +145,7 @@
 				"     fileSystem: 'datalake',",
 				"     folderPath: 'SalesFact',",
 				"     truncate: true,",
+				"     partitionFileNames:['SalesFact.parquet'],",
 				"     umask: 0022,",
 				"     preCommands: [],",
 				"     postCommands: [],",
