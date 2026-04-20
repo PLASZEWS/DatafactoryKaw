@@ -67,6 +67,259 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ProductDatabaseToGold')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "ToGoldProduct",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "ProductDatabaseToGold",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"SourceSilver": {},
+									"SinkToGold": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "ToGoldFileSource",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "ProductDatabaseToGoldFileSource",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"SourceSilver": {},
+									"SinkToGold": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "ToGoldPurchaseAddress",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "ToGoldPurchaseAddress",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"SourceSilver": {},
+									"SinkToGold": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "ToGoldSalesOrderFact",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "ToGoldPurchaseAddress",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "ToGoldFileSource",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "ToGoldProduct",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "ToGoldSalesOrderFact",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"SourceSilver": {},
+									"Product": {},
+									"FileSource": {},
+									"PurchseAddress": {},
+									"sinOrderFact": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/ProductDatabaseToGold')]",
+				"[concat(variables('factoryId'), '/dataflows/ProductDatabaseToGoldFileSource')]",
+				"[concat(variables('factoryId'), '/dataflows/ToGoldPurchaseAddress')]",
+				"[concat(variables('factoryId'), '/dataflows/ToGoldSalesOrderFact')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ProductDatabaseToSilver')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "ProductDatabaseToSilver",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "ProductDatabaseToSilver",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"FromBronze": {},
+									"sink1": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/ProductDatabaseToSilver')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ToGoldPurchaseAddress')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "ToGoldPurchaseAddress",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "ToGoldPurchaseAddress",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"SourceSilver": {},
+									"SinkToGold": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/ToGoldPurchaseAddress')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/DataLake')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -161,6 +414,513 @@
 						"     postCommands: [],",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true) ~> ProductDatabaseBronze"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/DataLake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ProductDatabaseToGold')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "DataLake",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SourceSilver"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "DataLake",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SinkToGold"
+						}
+					],
+					"transformations": [
+						{
+							"name": "aggregate1"
+						},
+						{
+							"name": "CreateProductID"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          OrderID as integer,",
+						"          Product as string,",
+						"          QuantityOrdered as integer,",
+						"          PriceEach as double,",
+						"          OrderDate as timestamp,",
+						"          PurchaseStreet as string,",
+						"          PurchaseCity as string,",
+						"          PurchaseState as string,",
+						"          PurchaseZipCode as string,",
+						"          FileName as string,",
+						"          LoadDate as date",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet',",
+						"     fileSystem: 'datalake',",
+						"     wildcardPaths:['Silver']) ~> SourceSilver",
+						"SourceSilver aggregate(groupBy(Product),",
+						"     PriceEach = last(PriceEach)) ~> aggregate1",
+						"aggregate1 keyGenerate(output(ProductID as long),",
+						"     startAt: 1L,",
+						"     stepValue: 1L) ~> CreateProductID",
+						"CreateProductID sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     fileSystem: 'datalake',",
+						"     folderPath: 'Gold/Product',",
+						"     truncate: true,",
+						"     partitionFileNames:['Product.parquet'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> SinkToGold"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/DataLake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ProductDatabaseToGoldFileSource')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "DataLake",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SourceSilver"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "DataLake",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SinkToGold"
+						}
+					],
+					"transformations": [
+						{
+							"name": "aggregate1"
+						},
+						{
+							"name": "CreateFileID"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          OrderID as integer,",
+						"          Product as string,",
+						"          QuantityOrdered as integer,",
+						"          PriceEach as double,",
+						"          OrderDate as timestamp,",
+						"          PurchaseStreet as string,",
+						"          PurchaseCity as string,",
+						"          PurchaseState as string,",
+						"          PurchaseZipCode as string,",
+						"          FileName as string,",
+						"          LoadDate as date",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet',",
+						"     fileSystem: 'datalake',",
+						"     wildcardPaths:['Silver']) ~> SourceSilver",
+						"SourceSilver aggregate(groupBy(FileName),",
+						"     LoadDate = last(LoadDate)) ~> aggregate1",
+						"aggregate1 keyGenerate(output(FileID as long),",
+						"     startAt: 1L,",
+						"     stepValue: 1L) ~> CreateFileID",
+						"CreateFileID sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     fileSystem: 'datalake',",
+						"     folderPath: 'Gold/FileSource',",
+						"     truncate: true,",
+						"     partitionFileNames:['FileSorce.parquet'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> SinkToGold"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/DataLake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ProductDatabaseToSilver')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "DataLake",
+								"type": "LinkedServiceReference"
+							},
+							"name": "FromBronze"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "DataLake",
+								"type": "LinkedServiceReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "ChangeDataType"
+						},
+						{
+							"name": "FilterOrderID"
+						},
+						{
+							"name": "RemoveDuplicate"
+						},
+						{
+							"name": "AddAddressParts"
+						},
+						{
+							"name": "SelectFinalColumns"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          OrderID as string,",
+						"          Product as string,",
+						"          QuantityOrdered as string,",
+						"          PriceEach as string,",
+						"          OrderDate as string,",
+						"          PurchaseAddress as string,",
+						"          FileName as string,",
+						"          LoadDate as date",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet',",
+						"     fileSystem: 'datalake',",
+						"     wildcardPaths:['Bronze/ProductDatabase']) ~> FromBronze",
+						"RemoveDuplicate cast(output(",
+						"          mycols as string,",
+						"          OrderID as integer,",
+						"          QuantityOrdered as integer,",
+						"          PriceEach as double,",
+						"          OrderDate as timestamp 'MM/dd/yy HH:mm',",
+						"          PurchaseAddress as string",
+						"     ),",
+						"     errors: true) ~> ChangeDataType",
+						"FromBronze filter(isInteger(OrderID)) ~> FilterOrderID",
+						"FilterOrderID aggregate(groupBy(mycols = sha2(256,columns())),",
+						"     each(match(true()), $$ = first($$))) ~> RemoveDuplicate",
+						"ChangeDataType derive(PurchaseStreetAddress = at(split(PurchaseAddress,','),1),",
+						"          PurchaseCity = at(split(PurchaseAddress,','),2),",
+						"          PutrchaseState = trim(at(split(trim(at(split(PurchaseAddress,','),3)),' '),1)),",
+						"          PurchaseZipCode = trim(at(split(trim(at(split(PurchaseAddress,','),3)),' '),2))) ~> AddAddressParts",
+						"AddAddressParts select(mapColumn(",
+						"          OrderID,",
+						"          Product,",
+						"          QuantityOrdered,",
+						"          PriceEach,",
+						"          OrderDate,",
+						"          PurchaseStreet = PurchaseStreetAddress,",
+						"          PurchaseCity,",
+						"          PurchaseState = PutrchaseState,",
+						"          PurchaseZipCode,",
+						"          FileName,",
+						"          LoadDate",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SelectFinalColumns",
+						"SelectFinalColumns sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     fileSystem: 'datalake',",
+						"     folderPath: 'Silver/',",
+						"     truncate: true,",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/DataLake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ToGoldPurchaseAddress')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "DataLake",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SourceSilver"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "DataLake",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SinkToGold"
+						}
+					],
+					"transformations": [
+						{
+							"name": "aggregate1"
+						},
+						{
+							"name": "CreatePurchaseID"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          OrderID as integer,",
+						"          Product as string,",
+						"          QuantityOrdered as integer,",
+						"          PriceEach as double,",
+						"          OrderDate as timestamp,",
+						"          PurchaseStreet as string,",
+						"          PurchaseCity as string,",
+						"          PurchaseState as string,",
+						"          PurchaseZipCode as string,",
+						"          FileName as string,",
+						"          LoadDate as date",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet',",
+						"     fileSystem: 'datalake',",
+						"     wildcardPaths:['Silver']) ~> SourceSilver",
+						"SourceSilver aggregate(groupBy(PurchaseStreet,",
+						"          PurchaseCity,",
+						"          PurchaseState),",
+						"     PurchaseZipCode = last(PurchaseZipCode)) ~> aggregate1",
+						"aggregate1 keyGenerate(output(PurchaseID as long),",
+						"     startAt: 1L,",
+						"     stepValue: 1L) ~> CreatePurchaseID",
+						"CreatePurchaseID sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     fileSystem: 'datalake',",
+						"     folderPath: 'Gold/PurchaseAddress',",
+						"     truncate: true,",
+						"     partitionFileNames:['PurchaseAddress.parquet'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> SinkToGold"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/DataLake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ToGoldSalesOrderFact')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "DataLake",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SourceSilver"
+						},
+						{
+							"linkedService": {
+								"referenceName": "DataLake",
+								"type": "LinkedServiceReference"
+							},
+							"name": "Product"
+						},
+						{
+							"linkedService": {
+								"referenceName": "DataLake",
+								"type": "LinkedServiceReference"
+							},
+							"name": "FileSource"
+						},
+						{
+							"linkedService": {
+								"referenceName": "DataLake",
+								"type": "LinkedServiceReference"
+							},
+							"name": "PurchseAddress"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "DataLake",
+								"type": "LinkedServiceReference"
+							},
+							"name": "sinOrderFact"
+						}
+					],
+					"transformations": [
+						{
+							"name": "JoinFileSource"
+						},
+						{
+							"name": "joinPurchaseAddress"
+						},
+						{
+							"name": "joinProduct"
+						},
+						{
+							"name": "select1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          OrderID as integer,",
+						"          Product as string,",
+						"          QuantityOrdered as integer,",
+						"          PriceEach as double,",
+						"          OrderDate as timestamp,",
+						"          PurchaseStreet as string,",
+						"          PurchaseCity as string,",
+						"          PurchaseState as string,",
+						"          PurchaseZipCode as string,",
+						"          FileName as string,",
+						"          LoadDate as date",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet',",
+						"     fileSystem: 'datalake',",
+						"     wildcardPaths:['Silver']) ~> SourceSilver",
+						"source(output(",
+						"          Product as string,",
+						"          PriceEach as double,",
+						"          ProductID as long",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet',",
+						"     fileSystem: 'datalake',",
+						"     wildcardPaths:['Gold/Product']) ~> Product",
+						"source(output(",
+						"          FileName as string,",
+						"          LoadDate as date,",
+						"          FileID as long",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet',",
+						"     fileSystem: 'datalake',",
+						"     wildcardPaths:['Gold/FileSource']) ~> FileSource",
+						"source(output(",
+						"          PurchaseStreet as string,",
+						"          PurchaseCity as string,",
+						"          PurchaseState as string,",
+						"          PurchaseZipCode as string,",
+						"          PurchaseID as long",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet',",
+						"     fileSystem: 'datalake',",
+						"     wildcardPaths:['Gold/PurchaseAddress']) ~> PurchseAddress",
+						"SourceSilver, FileSource join(SourceSilver@FileName == FileSource@FileName,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> JoinFileSource",
+						"JoinFileSource, PurchseAddress join(SourceSilver@PurchaseStreet == PurchseAddress@PurchaseStreet",
+						"     && SourceSilver@PurchaseCity == PurchseAddress@PurchaseCity",
+						"     && SourceSilver@PurchaseState == PurchseAddress@PurchaseState",
+						"     && SourceSilver@PurchaseZipCode == PurchseAddress@PurchaseZipCode,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> joinPurchaseAddress",
+						"joinPurchaseAddress, Product join(SourceSilver@Product == Product@Product,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> joinProduct",
+						"joinProduct select(mapColumn(",
+						"          OrderID,",
+						"          ProductID,",
+						"          QuantityOrdered,",
+						"          OrderDate,",
+						"          FileID,",
+						"          PurchaseID",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select1",
+						"select1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     fileSystem: 'datalake',",
+						"     folderPath: 'SalesFact',",
+						"     truncate: true,",
+						"     partitionFileNames:['SalesFact.parquet'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> sinOrderFact"
 					]
 				}
 			},
