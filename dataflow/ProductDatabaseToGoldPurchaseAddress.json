@@ -60,13 +60,15 @@
 				"     validateSchema: false,",
 				"     format: 'parquet',",
 				"     fileSystem: 'datalake',",
-				"     folderPath: 'Gold',",
+				"     folderPath: 'Gold/PurchaseAddress',",
 				"     truncate: true,",
+				"     partitionFileNames:['PurchaseAddress.parquet'],",
 				"     umask: 0022,",
 				"     preCommands: [],",
 				"     postCommands: [],",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> SinkToGold"
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> SinkToGold"
 			]
 		}
 	}
