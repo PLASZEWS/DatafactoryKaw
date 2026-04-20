@@ -33,7 +33,15 @@
 					"name": "PurchseAddress"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "DataLake",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinOrderFact"
+				}
+			],
 			"transformations": [
 				{
 					"name": "JoinFileSource"
@@ -43,6 +51,9 @@
 				},
 				{
 					"name": "joinProduct"
+				},
+				{
+					"name": "select1"
 				}
 			],
 			"scriptLines": [
@@ -117,7 +128,28 @@
 				"     joinType:'left',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
-				"     broadcast: 'auto')~> joinProduct"
+				"     broadcast: 'auto')~> joinProduct",
+				"joinProduct select(mapColumn(",
+				"          OrderID,",
+				"          ProductID,",
+				"          QuantityOrdered,",
+				"          OrderDate,",
+				"          FileID,",
+				"          PurchaseID",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'datalake',",
+				"     folderPath: 'SalesFact',",
+				"     truncate: true,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sinOrderFact"
 			]
 		}
 	}
