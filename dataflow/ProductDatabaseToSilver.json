@@ -25,6 +25,9 @@
 				},
 				{
 					"name": "AddAddressParts"
+				},
+				{
+					"name": "SelectFinalColumns"
 				}
 			],
 			"scriptLines": [
@@ -59,7 +62,23 @@
 				"     each(match(true()), $$ = first($$))) ~> RemoveDuplicate",
 				"ChangeDataType derive({Street Address} = at(split(PurchaseAddress,','),1),",
 				"          City = at(split(PurchaseAddress,','),2),",
-				"          State = at(split(PurchaseAddress,','),3)) ~> AddAddressParts"
+				"          State = trim(at(split(trim(at(split(PurchaseAddress,','),3)),' '),1)),",
+				"          ZipCode = trim(at(split(trim(at(split(PurchaseAddress,','),3)),' '),2))) ~> AddAddressParts",
+				"AddAddressParts select(mapColumn(",
+				"          OrderID,",
+				"          Product,",
+				"          QuantityOrdered,",
+				"          PriceEach,",
+				"          OrderDate,",
+				"          {Street Address},",
+				"          City,",
+				"          State,",
+				"          ZipCode,",
+				"          FileName,",
+				"          LoadDate",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SelectFinalColumns"
 			]
 		}
 	}
