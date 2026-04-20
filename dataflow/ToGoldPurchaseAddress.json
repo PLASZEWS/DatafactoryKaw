@@ -1,5 +1,5 @@
 {
-	"name": "ProductDatabaseToGoldPurchaseAddress",
+	"name": "ToGoldPurchaseAddress",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
