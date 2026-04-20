@@ -1,0 +1,124 @@
+{
+	"name": "ToGoldSalesOrderFact",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "DataLake",
+						"type": "LinkedServiceReference"
+					},
+					"name": "SourceSilver"
+				},
+				{
+					"linkedService": {
+						"referenceName": "DataLake",
+						"type": "LinkedServiceReference"
+					},
+					"name": "Product"
+				},
+				{
+					"linkedService": {
+						"referenceName": "DataLake",
+						"type": "LinkedServiceReference"
+					},
+					"name": "FileSource"
+				},
+				{
+					"linkedService": {
+						"referenceName": "DataLake",
+						"type": "LinkedServiceReference"
+					},
+					"name": "PurchseAddress"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "JoinFileSource"
+				},
+				{
+					"name": "joinPurchaseAddress"
+				},
+				{
+					"name": "joinProduct"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          OrderID as integer,",
+				"          Product as string,",
+				"          QuantityOrdered as integer,",
+				"          PriceEach as double,",
+				"          OrderDate as timestamp,",
+				"          PurchaseStreet as string,",
+				"          PurchaseCity as string,",
+				"          PurchaseState as string,",
+				"          PurchaseZipCode as string,",
+				"          FileName as string,",
+				"          LoadDate as date",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'datalake',",
+				"     wildcardPaths:['Silver']) ~> SourceSilver",
+				"source(output(",
+				"          Product as string,",
+				"          PriceEach as double,",
+				"          ProductID as long",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'datalake',",
+				"     wildcardPaths:['Gold/Product']) ~> Product",
+				"source(output(",
+				"          FileName as string,",
+				"          LoadDate as date,",
+				"          FileID as long",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'datalake',",
+				"     wildcardPaths:['Gold/FileSource']) ~> FileSource",
+				"source(output(",
+				"          PurchaseStreet as string,",
+				"          PurchaseCity as string,",
+				"          PurchaseState as string,",
+				"          PurchaseZipCode as string,",
+				"          PurchaseID as long",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'datalake',",
+				"     wildcardPaths:['Gold/PurchaseAddress']) ~> PurchseAddress",
+				"SourceSilver, FileSource join(SourceSilver@FileName == FileSource@FileName,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> JoinFileSource",
+				"JoinFileSource, PurchseAddress join(SourceSilver@PurchaseStreet == PurchseAddress@PurchaseStreet",
+				"     && SourceSilver@PurchaseCity == PurchseAddress@PurchaseCity",
+				"     && SourceSilver@PurchaseState == PurchseAddress@PurchaseState",
+				"     && SourceSilver@PurchaseZipCode == PurchseAddress@PurchaseZipCode,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinPurchaseAddress",
+				"joinPurchaseAddress, Product join(SourceSilver@Product == Product@Product,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinProduct"
+			]
+		}
+	}
+}
