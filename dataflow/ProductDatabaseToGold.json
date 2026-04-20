@@ -1,0 +1,71 @@
+{
+	"name": "ProductDatabaseToGold",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "DataLake",
+						"type": "LinkedServiceReference"
+					},
+					"name": "SourceSilver"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "DataLake",
+						"type": "LinkedServiceReference"
+					},
+					"name": "SinkToGold"
+				}
+			],
+			"transformations": [
+				{
+					"name": "aggregate1"
+				},
+				{
+					"name": "CreateProductID"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          OrderID as integer,",
+				"          Product as string,",
+				"          QuantityOrdered as integer,",
+				"          PriceEach as double,",
+				"          OrderDate as timestamp,",
+				"          PurchaseStreet as string,",
+				"          PurchaseCity as string,",
+				"          PurchaseState as string,",
+				"          PurchaseZipCode as string,",
+				"          FileName as string,",
+				"          LoadDate as date",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'datalake',",
+				"     wildcardPaths:['Silver']) ~> SourceSilver",
+				"SourceSilver aggregate(groupBy(Product),",
+				"     PriceEach = last(PriceEach)) ~> aggregate1",
+				"aggregate1 keyGenerate(output(ProductID as long),",
+				"     startAt: 1L,",
+				"     stepValue: 1L) ~> CreateProductID",
+				"CreateProductID sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'datalake',",
+				"     folderPath: 'Gold',",
+				"     truncate: true,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SinkToGold"
+			]
+		}
+	}
+}
