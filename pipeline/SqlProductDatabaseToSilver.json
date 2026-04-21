@@ -30,7 +30,7 @@
 					},
 					"sink": {
 						"type": "AzureSqlSink",
-						"preCopyScript": "DROP TABLE if exists Stage.SalesOrderTemp\n\ncreate table Stage.SalesOrderTemp\n(OrderID varchar(max).\n Product varchar(max),\n QuantityOrdered varchar(max),\n PriceEach varchar(max),\n OrderDate varchar(max),\n PurchaseAddress varchar(max),\n FileName varchar(max),\n LoadDate varchar(max)\n)",
+						"preCopyScript": "DROP TABLE if exists Stage.SalesOrderTemp\n\ncreate table Stage.SalesOrderTemp\n(OrderID varchar(max),\n Product varchar(max),\n QuantityOrdered varchar(max),\n PriceEach varchar(max),\n OrderDate varchar(max),\n PurchaseAddress varchar(max),\n FileName varchar(max),\n LoadDate varchar(max)\n)",
 						"writeBehavior": "insert",
 						"sqlWriterUseTableLock": false,
 						"disableMetricsCollection": false
@@ -61,6 +61,33 @@
 						}
 					}
 				]
+			},
+			{
+				"name": "SalesOrderLoad",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Copy To SQL",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[Stage].[SalesOrderLoad]"
+				},
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabaseTable",
+					"type": "LinkedServiceReference"
+				}
 			}
 		],
 		"annotations": []
