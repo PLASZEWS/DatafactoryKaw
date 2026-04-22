@@ -143,7 +143,7 @@
 				"     validateSchema: false,",
 				"     format: 'parquet',",
 				"     fileSystem: 'datalake',",
-				"     folderPath: 'SalesFact',",
+				"     folderPath: 'Gold/SalesFact',",
 				"     truncate: true,",
 				"     partitionFileNames:['SalesFact.parquet'],",
 				"     umask: 0022,",
