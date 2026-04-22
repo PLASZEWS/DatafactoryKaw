@@ -1,0 +1,55 @@
+{
+	"name": "SQLProductDatabaseToGold",
+	"properties": {
+		"activities": [
+			{
+				"name": "DimensionLoad",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[Stage].[LoadDim]"
+				},
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabaseTable",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "FactLoading",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "DimensionLoad",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[Stage].[SalesOrderFactLoad]"
+				},
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabaseTable",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"annotations": []
+	}
+}
