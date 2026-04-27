@@ -1,0 +1,88 @@
+{
+	"name": "IncrementalLoading",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "DataLake",
+						"type": "LinkedServiceReference"
+					},
+					"name": "People"
+				},
+				{
+					"linkedService": {
+						"referenceName": "AzureSqlDatabaseTable",
+						"type": "LinkedServiceReference"
+					},
+					"name": "SinkAsSource"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "AzureSqlDatabaseTable",
+						"type": "LinkedServiceReference"
+					},
+					"name": "SinkAsTarget"
+				}
+			],
+			"transformations": [
+				{
+					"name": "DoesNotexistInSink"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id as short,",
+				"          first_name as string,",
+				"          last_name as string,",
+				"          age as short,",
+				"          hobby as string",
+				"     ),",
+				"     useSchema: false,",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'delimited',",
+				"     fileSystem: 'datalake',",
+				"     columnDelimiter: ',',",
+				"     escapeChar: '\\\\',",
+				"     quoteChar: '\\\"',",
+				"     columnNamesAsHeader: true,",
+				"     wildcardPaths:['People.txt']) ~> People",
+				"source(output(",
+				"          id as integer,",
+				"          first_name as string,",
+				"          last_name as string,",
+				"          age as integer,",
+				"          hobby as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'dbo',",
+				"     tableName: 'People',",
+				"     isolationLevel: 'READ_UNCOMMITTED') ~> SinkAsSource",
+				"People, SinkAsSource exists(People@id == SinkAsSource@id,",
+				"     negate:true,",
+				"     broadcast: 'auto')~> DoesNotexistInSink",
+				"DoesNotexistInSink sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'dbo',",
+				"     tableName: 'People',",
+				"     insertable: true,",
+				"     updateable: false,",
+				"     deletable: false,",
+				"     upsertable: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> SinkAsTarget"
+			]
+		}
+	}
+}
