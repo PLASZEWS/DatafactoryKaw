@@ -569,7 +569,7 @@
 			"properties": {
 				"activities": [
 					{
-						"name": "Data flow1",
+						"name": "IncrementalLoading",
 						"type": "ExecuteDataFlow",
 						"dependsOn": [],
 						"policy": {
