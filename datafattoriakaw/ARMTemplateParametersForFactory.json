@@ -5,8 +5,20 @@
 		"factoryName": {
 			"value": "datafattoriakaw"
 		},
+		"AzureSqlDatabaseTable_password": {
+			"value": ""
+		},
 		"DataLake_accountKey": {
 			"value": ""
+		},
+		"AzureSqlDatabaseTable_properties_typeProperties_server": {
+			"value": "kawdb80.database.windows.net"
+		},
+		"AzureSqlDatabaseTable_properties_typeProperties_database": {
+			"value": "DataWarehouse"
+		},
+		"AzureSqlDatabaseTable_properties_typeProperties_userName": {
+			"value": "dba"
 		},
 		"DataLake_properties_typeProperties_url": {
 			"value": "https://storageaccountkaw.dfs.core.windows.net/"
