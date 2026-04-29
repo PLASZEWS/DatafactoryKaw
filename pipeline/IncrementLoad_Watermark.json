@@ -80,7 +80,7 @@
 					"source": {
 						"type": "AzureSqlSource",
 						"sqlReaderQuery": {
-							"value": "select * from file_source \nwhere lastmodifytime>'@{activity('Lookup_FileSource').output.firstRow}'",
+							"value": "select * from file_source \nwhere lastmodifytime>'@{activity('Lookup_FileSource').output.firstRow.WatermarkValue}' and  <",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",

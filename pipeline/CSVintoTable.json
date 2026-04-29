@@ -30,7 +30,10 @@
 						"type": "AzureSqlSink",
 						"writeBehavior": "upsert",
 						"upsertSettings": {
-							"useTempDB": true
+							"useTempDB": true,
+							"keys": [
+								"Length"
+							]
 						},
 						"sqlWriterUseTableLock": false,
 						"disableMetricsCollection": false
@@ -50,7 +53,7 @@
 						"referenceName": "InputCSV",
 						"type": "DatasetReference",
 						"parameters": {
-							"FileName": "cars.csv"
+							"FileName": "planes.csv"
 						}
 					}
 				],
@@ -60,7 +63,7 @@
 						"type": "DatasetReference",
 						"parameters": {
 							"Schema": "dbo",
-							"TableName": "cars"
+							"TableName": "planes"
 						}
 					}
 				]
