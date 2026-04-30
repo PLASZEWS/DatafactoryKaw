@@ -1,5 +1,5 @@
 {
-	"name": "IncrementLoad_Watermark_Parameters",
+	"name": "IncrementLoad_Watermark_Parame",
 	"properties": {
 		"activities": [
 			{
@@ -17,6 +17,10 @@
 				"typeProperties": {
 					"source": {
 						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "select TableName,WatermarkValue\nfrom dbo.WatermarkTable\nwhere TableName='@{pipeline().parameters.TableName}'",
+							"type": "Expression"
+						},
 						"queryTimeout": "02:00:00",
 						"partitionOption": "None"
 					},
@@ -41,7 +45,10 @@
 				"typeProperties": {
 					"source": {
 						"type": "AzureSqlSource",
-						"sqlReaderQuery": "select max(lastmodifytime) as LatestDate\nfrom dbo.file_source",
+						"sqlReaderQuery": {
+							"value": "select max(@{pipeline().parameters.WatermarkColumn}) as LatestDate\nfrom @{pipeline().parameters.TableName}",
+							"type": "Expression"
+						},
 						"queryTimeout": "02:00:00",
 						"partitionOption": "None"
 					},
@@ -80,22 +87,16 @@
 					"source": {
 						"type": "AzureSqlSource",
 						"sqlReaderQuery": {
-							"value": "select * from file_source \nwhere lastmodifytime>'@{activity('LookupWatermarkTable').output.firstRow.WatermarkValue}' and lastmodifytime<='@{activity('Lookup_FileSource').output.firstRow.LatestDate}'",
+							"value": "select * \nfrom @{pipeline().parameters.TableName}\nwhere @{pipeline().parameters.WatermarkColumn}>'@{activity('LookupWatermarkTable').output.firstRow.WatermarkValue}' and @{pipeline().parameters.WatermarkColumn}<='@{activity('Lookup_FileSource').output.firstRow.LatestDate}'",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
 						"partitionOption": "None"
 					},
 					"sink": {
-						"type": "DelimitedTextSink",
-						"storeSettings": {
-							"type": "AzureBlobFSWriteSettings"
-						},
-						"formatSettings": {
-							"type": "DelimitedTextWriteSettings",
-							"quoteAllText": true,
-							"fileExtension": ".txt"
-						}
+						"type": "AzureSqlSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false
 					},
 					"enableStaging": false,
 					"translator": {
@@ -115,14 +116,8 @@
 				],
 				"outputs": [
 					{
-						"referenceName": "Sink_Watermark",
-						"type": "DatasetReference",
-						"parameters": {
-							"FileName": {
-								"value": "@concat('File=',pipeline().RunId)",
-								"type": "Expression"
-							}
-						}
+						"referenceName": "AzureSqlTable1",
+						"type": "DatasetReference"
 					}
 				]
 			},
@@ -170,6 +165,14 @@
 				}
 			}
 		],
+		"parameters": {
+			"TableName": {
+				"type": "string"
+			},
+			"WatermarkColumn": {
+				"type": "string"
+			}
+		},
 		"annotations": []
 	}
 }
