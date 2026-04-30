@@ -95,14 +95,11 @@
 					},
 					"sink": {
 						"type": "AzureSqlSink",
-						"writeBehavior": {
-							"value": "@pipeline().parameters.TableName",
-							"type": "Expression"
-						},
-						"sqlWriterUseTableLock": false,
+						"writeBehavior": "upsert",
 						"upsertSettings": {
 							"useTempDB": true
 						},
+						"sqlWriterUseTableLock": false,
 						"disableMetricsCollection": false
 					},
 					"enableStaging": false,
