@@ -25,6 +25,7 @@
 			}
 		],
 		"typeProperties": {
+			"schema": "",
 			"table": {
 				"value": "@dataset().TableName",
 				"type": "Expression"
