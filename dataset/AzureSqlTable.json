@@ -27,7 +27,7 @@
 		"typeProperties": {
 			"schema": "dbo",
 			"table": {
-				"value": "file_source",
+				"value": "watermarktable",
 				"type": "Expression"
 			}
 		}
