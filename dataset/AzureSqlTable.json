@@ -25,9 +25,9 @@
 			}
 		],
 		"typeProperties": {
-			"schema": "",
+			"schema": "dbo",
 			"table": {
-				"value": "@dataset().TableName",
+				"value": "file_source",
 				"type": "Expression"
 			}
 		}
