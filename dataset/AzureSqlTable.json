@@ -5,6 +5,11 @@
 			"referenceName": "AzureSqlDatabaseTable",
 			"type": "LinkedServiceReference"
 		},
+		"parameters": {
+			"TABLENAME": {
+				"type": "string"
+			}
+		},
 		"annotations": [],
 		"type": "AzureSqlTable",
 		"schema": [
@@ -20,11 +25,7 @@
 			}
 		],
 		"typeProperties": {
-			"schema": "dbo",
-			"table": {
-				"value": "watermarktable",
-				"type": "Expression"
-			}
+			"schema": "dbo"
 		}
 	}
 }
