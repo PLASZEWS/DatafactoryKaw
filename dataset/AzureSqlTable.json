@@ -25,7 +25,11 @@
 			}
 		],
 		"typeProperties": {
-			"schema": "dbo"
+			"schema": "dbo",
+			"table": {
+				"value": "@dataset().TABLENAME",
+				"type": "Expression"
+			}
 		}
 	}
 }
