@@ -21,7 +21,7 @@
 		],
 		"typeProperties": {
 			"schema": "dbo",
-			"table": "File_Source"
+			"table": "Watermarktable"
 		}
 	}
 }

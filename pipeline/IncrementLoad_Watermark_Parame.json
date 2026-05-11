@@ -26,13 +26,7 @@
 					},
 					"dataset": {
 						"referenceName": "AzureSqlTable",
-						"type": "DatasetReference",
-						"parameters": {
-							"TableName": {
-								"value": "@pipeline().parameters.TableName",
-								"type": "Expression"
-							}
-						}
+						"type": "DatasetReference"
 					}
 				}
 			},
@@ -60,13 +54,7 @@
 					},
 					"dataset": {
 						"referenceName": "AzureSqlTable",
-						"type": "DatasetReference",
-						"parameters": {
-							"TableName": {
-								"value": "@pipeline().parameters.TableName",
-								"type": "Expression"
-							}
-						}
+						"type": "DatasetReference"
 					}
 				}
 			},
@@ -124,13 +112,7 @@
 				"inputs": [
 					{
 						"referenceName": "AzureSqlTable",
-						"type": "DatasetReference",
-						"parameters": {
-							"TableName": {
-								"value": "@pipeline().parameters.TableName",
-								"type": "Expression"
-							}
-						}
+						"type": "DatasetReference"
 					}
 				],
 				"outputs": [
