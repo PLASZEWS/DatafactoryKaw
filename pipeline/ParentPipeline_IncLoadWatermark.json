@@ -47,7 +47,7 @@
 					"isSequential": true,
 					"activities": [
 						{
-							"name": "Execute Pipeline1",
+							"name": "Child",
 							"type": "ExecutePipeline",
 							"dependsOn": [],
 							"policy": {
