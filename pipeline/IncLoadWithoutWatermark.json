@@ -17,7 +17,7 @@
 				"typeProperties": {
 					"source": {
 						"type": "AzureSqlSource",
-						"sqlReaderQuery": " SELECT isnull(max([LastModifiedDate]),'1900-01-01 00:00:00')\n FROM [dbo].[Target_Orders]",
+						"sqlReaderQuery": " SELECT isnull(max([LastModifiedDate]),'1900-01-01 00:00:00') as LatestDate\n FROM [dbo].[Target_Orders]",
 						"queryTimeout": "02:00:00",
 						"partitionOption": "None"
 					},
@@ -49,7 +49,10 @@
 				"typeProperties": {
 					"source": {
 						"type": "AzureSqlSource",
-						"sqlReaderQuery": "  SELECT *\n  FROM [dbo].Source_Orders\n  where [LastModifiedDate]>(select max(lastmodifieddate) from dbo.Target_Orders)",
+						"sqlReaderQuery": {
+							"value": "SELECT *\nFROM dbo.Source_Orders\nwhere LastModifiedDate>'@{activity('Target').output.firstRowLatestDate}'",
+							"type": "Expression"
+						},
 						"queryTimeout": "02:00:00",
 						"partitionOption": "None"
 					},
