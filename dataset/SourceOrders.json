@@ -1,0 +1,12 @@
+{
+	"name": "SourceOrders",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_SQLDB_SOURCE",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": []
+	}
+}
