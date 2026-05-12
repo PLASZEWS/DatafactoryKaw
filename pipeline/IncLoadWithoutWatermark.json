@@ -1,6 +1,33 @@
 {
 	"name": "IncLoadWithoutWatermark",
 	"properties": {
+		"activities": [
+			{
+				"name": "Target",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": " SELECT isnull(max([LastModifiedDate]),'1900-01-01 00:00:00')\n FROM [dbo].[Target_Orders]",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "TargetOrders",
+						"type": "DatasetReference"
+					}
+				}
+			}
+		],
 		"annotations": []
 	}
 }
