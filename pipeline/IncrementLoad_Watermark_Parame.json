@@ -87,7 +87,7 @@
 					"source": {
 						"type": "AzureSqlSource",
 						"sqlReaderQuery": {
-							"value": "select * \nfrom @{pipeline().parameters.TableName}\nwhere @{pipeline().parameters.WatermarkColumn}>'@{activity('LookupWatermarkTable').output.firstRow.WatermarkValue}' or @{pipeline().parameters.WatermarkColumn}<='@{activity('Lookup_FileSource').output.firstRow.LatestDate}'",
+							"value": "select * \nfrom @{pipeline().parameters.TableName}\nwhere @{pipeline().parameters.WatermarkColumn}>'@{activity('LookupWatermarkTable').output.firstRow.WatermarkValue}' ",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
