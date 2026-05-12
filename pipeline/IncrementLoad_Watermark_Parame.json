@@ -124,10 +124,7 @@
 								"value": "@pipeline().parameters.TableName",
 								"type": "Expression"
 							},
-							"Schema": {
-								"value": "@pipeline().parameters.Schema",
-								"type": "Expression"
-							}
+							"Schema": "Stage"
 						}
 					}
 				]
