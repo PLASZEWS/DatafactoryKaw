@@ -17,10 +17,7 @@
 		"type": "AzureSqlTable",
 		"schema": [],
 		"typeProperties": {
-			"schema": {
-				"value": "@dataset().Schema",
-				"type": "Expression"
-			},
+			"schema": "Stage",
 			"table": {
 				"value": "@dataset().TableName",
 				"type": "Expression"
