@@ -41,7 +41,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@activity('ListTables').output.value",
+						"value": "@activity('ListTables').output.firstRow",
 						"type": "Expression"
 					},
 					"isSequential": true,
