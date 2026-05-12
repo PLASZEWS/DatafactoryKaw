@@ -50,7 +50,7 @@
 					"source": {
 						"type": "AzureSqlSource",
 						"sqlReaderQuery": {
-							"value": "SELECT *\nFROM dbo.Source_Orders\nwhere LastModifiedDate>'@{activity('Target').output.firstRowLatestDate}'",
+							"value": "SELECT *\nFROM dbo.Source_Orders\nwhere LastModifiedDate>'@{activity('Target').output.firstRow.LatestDate}'",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
