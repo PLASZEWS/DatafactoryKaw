@@ -15,6 +15,14 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'accountKey' of 'DataLake'"
 		},
+		"LS_SQLDB_SINK_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'LS_SQLDB_SINK'"
+		},
+		"LS_SQLDB_SOURCE_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'LS_SQLDB_SOURCE'"
+		},
 		"AzureSqlDatabaseTable_properties_typeProperties_server": {
 			"type": "string",
 			"defaultValue": "kawdb80.database.windows.net"
@@ -30,6 +38,30 @@
 		"DataLake_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://storageaccountkaw.dfs.core.windows.net/"
+		},
+		"LS_SQLDB_SINK_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "kawdb80.database.windows.net"
+		},
+		"LS_SQLDB_SINK_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "DataWarehouse"
+		},
+		"LS_SQLDB_SINK_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "dba"
+		},
+		"LS_SQLDB_SOURCE_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "kawdb80.database.windows.net"
+		},
+		"LS_SQLDB_SOURCE_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "DataWarehouse"
+		},
+		"LS_SQLDB_SOURCE_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "dba"
 		},
 		"containerUri": {
 			"type": "string",
@@ -64,6 +96,12 @@
 					"DataLake_accountKey": {
 						"value": "[parameters('DataLake_accountKey')]"
 					},
+					"LS_SQLDB_SINK_password": {
+						"value": "[parameters('LS_SQLDB_SINK_password')]"
+					},
+					"LS_SQLDB_SOURCE_password": {
+						"value": "[parameters('LS_SQLDB_SOURCE_password')]"
+					},
 					"AzureSqlDatabaseTable_properties_typeProperties_server": {
 						"value": "[parameters('AzureSqlDatabaseTable_properties_typeProperties_server')]"
 					},
@@ -75,6 +113,24 @@
 					},
 					"DataLake_properties_typeProperties_url": {
 						"value": "[parameters('DataLake_properties_typeProperties_url')]"
+					},
+					"LS_SQLDB_SINK_properties_typeProperties_server": {
+						"value": "[parameters('LS_SQLDB_SINK_properties_typeProperties_server')]"
+					},
+					"LS_SQLDB_SINK_properties_typeProperties_database": {
+						"value": "[parameters('LS_SQLDB_SINK_properties_typeProperties_database')]"
+					},
+					"LS_SQLDB_SINK_properties_typeProperties_userName": {
+						"value": "[parameters('LS_SQLDB_SINK_properties_typeProperties_userName')]"
+					},
+					"LS_SQLDB_SOURCE_properties_typeProperties_server": {
+						"value": "[parameters('LS_SQLDB_SOURCE_properties_typeProperties_server')]"
+					},
+					"LS_SQLDB_SOURCE_properties_typeProperties_database": {
+						"value": "[parameters('LS_SQLDB_SOURCE_properties_typeProperties_database')]"
+					},
+					"LS_SQLDB_SOURCE_properties_typeProperties_userName": {
+						"value": "[parameters('LS_SQLDB_SOURCE_properties_typeProperties_userName')]"
 					}
 				}
 			},

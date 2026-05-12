@@ -11,6 +11,12 @@
 		"DataLake_accountKey": {
 			"value": ""
 		},
+		"LS_SQLDB_SINK_password": {
+			"value": ""
+		},
+		"LS_SQLDB_SOURCE_password": {
+			"value": ""
+		},
 		"AzureSqlDatabaseTable_properties_typeProperties_server": {
 			"value": "kawdb80.database.windows.net"
 		},
@@ -22,6 +28,24 @@
 		},
 		"DataLake_properties_typeProperties_url": {
 			"value": "https://storageaccountkaw.dfs.core.windows.net/"
+		},
+		"LS_SQLDB_SINK_properties_typeProperties_server": {
+			"value": "kawdb80.database.windows.net"
+		},
+		"LS_SQLDB_SINK_properties_typeProperties_database": {
+			"value": "DataWarehouse"
+		},
+		"LS_SQLDB_SINK_properties_typeProperties_userName": {
+			"value": "dba"
+		},
+		"LS_SQLDB_SOURCE_properties_typeProperties_server": {
+			"value": "kawdb80.database.windows.net"
+		},
+		"LS_SQLDB_SOURCE_properties_typeProperties_database": {
+			"value": "DataWarehouse"
+		},
+		"LS_SQLDB_SOURCE_properties_typeProperties_userName": {
+			"value": "dba"
 		},
 		"containerUri": {
 			"value": ""
