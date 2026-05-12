@@ -178,6 +178,9 @@
 			},
 			"WatermarkColumn": {
 				"type": "string"
+			},
+			"Schema": {
+				"type": "string"
 			}
 		},
 		"annotations": []
