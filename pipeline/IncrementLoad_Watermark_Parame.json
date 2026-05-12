@@ -118,14 +118,7 @@
 				"outputs": [
 					{
 						"referenceName": "AzureSqlTable2",
-						"type": "DatasetReference",
-						"parameters": {
-							"TableName": {
-								"value": "@pipeline().parameters.TableName",
-								"type": "Expression"
-							},
-							"Schema": "Stage"
-						}
+						"type": "DatasetReference"
 					}
 				]
 			},
