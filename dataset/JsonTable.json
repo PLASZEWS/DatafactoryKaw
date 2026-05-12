@@ -1,0 +1,24 @@
+{
+	"name": "JsonTable",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "DataLake",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"FileName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "eported-data",
+				"fileSystem": "datalake"
+			}
+		},
+		"schema": {}
+	}
+}
