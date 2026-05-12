@@ -771,8 +771,7 @@
 									"TableName": {
 										"value": "@pipeline().parameters.TableName",
 										"type": "Expression"
-									},
-									"Schema": "Stage"
+									}
 								}
 							}
 						]
