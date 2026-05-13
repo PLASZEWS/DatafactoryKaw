@@ -13,6 +13,438 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/IncrementalLoading')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "DataLake",
+								"type": "LinkedServiceReference"
+							},
+							"name": "People"
+						},
+						{
+							"linkedService": {
+								"referenceName": "AzureSqlDatabaseTable",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SinkAsSource"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "AzureSqlDatabaseTable",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SinkAsTarget"
+						}
+					],
+					"transformations": [
+						{
+							"name": "DoesNotexistInSink"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          id as short,",
+						"          first_name as string,",
+						"          last_name as string,",
+						"          age as short,",
+						"          hobby as string",
+						"     ),",
+						"     useSchema: false,",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'delimited',",
+						"     fileSystem: 'datalake',",
+						"     columnDelimiter: ',',",
+						"     escapeChar: '\\\\',",
+						"     quoteChar: '\\\"',",
+						"     columnNamesAsHeader: true,",
+						"     wildcardPaths:['People.txt']) ~> People",
+						"source(output(",
+						"          id as integer,",
+						"          first_name as string,",
+						"          last_name as string,",
+						"          age as integer,",
+						"          hobby as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'table',",
+						"     store: 'sqlserver',",
+						"     schemaName: 'dbo',",
+						"     tableName: 'People',",
+						"     isolationLevel: 'READ_UNCOMMITTED') ~> SinkAsSource",
+						"People, SinkAsSource exists(People@id == SinkAsSource@id,",
+						"     negate:true,",
+						"     broadcast: 'auto')~> DoesNotexistInSink",
+						"DoesNotexistInSink sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'table',",
+						"     store: 'sqlserver',",
+						"     schemaName: 'dbo',",
+						"     tableName: 'People',",
+						"     insertable: true,",
+						"     updateable: false,",
+						"     deletable: false,",
+						"     upsertable: false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> SinkAsTarget"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ProductDatabaseToBronze')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "DataLake",
+								"type": "LinkedServiceReference"
+							},
+							"name": "ProductDatbaseRaw"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "DataLake",
+								"type": "LinkedServiceReference"
+							},
+							"name": "ProductDatabaseBronze"
+						}
+					],
+					"transformations": [
+						{
+							"name": "AddLoadDate"
+						},
+						{
+							"name": "select1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          {Order ID} as string,",
+						"          Product as string,",
+						"          {Quantity Ordered} as string,",
+						"          {Price Each} as string,",
+						"          {Order Date} as string,",
+						"          {Purchase Address} as string",
+						"     ),",
+						"     useSchema: false,",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     rowUrlColumn: 'FileName',",
+						"     format: 'delimited',",
+						"     fileSystem: 'datalake',",
+						"     columnDelimiter: ',',",
+						"     escapeChar: '\\\\',",
+						"     quoteChar: '\\\"',",
+						"     columnNamesAsHeader: true,",
+						"     wildcardPaths:['Raw/Product Database/']) ~> ProductDatbaseRaw",
+						"ProductDatbaseRaw derive(LoadDate = currentDate()) ~> AddLoadDate",
+						"AddLoadDate select(mapColumn(",
+						"          OrderID = {Order ID},",
+						"          Product,",
+						"          QuantityOrdered = {Quantity Ordered},",
+						"          PriceEach = {Price Each},",
+						"          OrderDate = {Order Date},",
+						"          PurchaseAddress = {Purchase Address},",
+						"          FileName,",
+						"          LoadDate",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select1",
+						"select1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     fileSystem: 'datalake',",
+						"     folderPath: 'Bronze/ProductDatabase',",
+						"     truncate: true,",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> ProductDatabaseBronze"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ProductDatabaseToGold')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "DataLake",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SourceSilver"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "DataLake",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SinkToGold"
+						}
+					],
+					"transformations": [
+						{
+							"name": "aggregate1"
+						},
+						{
+							"name": "CreateProductID"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          OrderID as integer,",
+						"          Product as string,",
+						"          QuantityOrdered as integer,",
+						"          PriceEach as double,",
+						"          OrderDate as timestamp,",
+						"          PurchaseStreet as string,",
+						"          PurchaseCity as string,",
+						"          PurchaseState as string,",
+						"          PurchaseZipCode as string,",
+						"          FileName as string,",
+						"          LoadDate as date",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet',",
+						"     fileSystem: 'datalake',",
+						"     wildcardPaths:['Silver']) ~> SourceSilver",
+						"SourceSilver aggregate(groupBy(Product),",
+						"     PriceEach = last(PriceEach)) ~> aggregate1",
+						"aggregate1 keyGenerate(output(ProductID as long),",
+						"     startAt: 1L,",
+						"     stepValue: 1L) ~> CreateProductID",
+						"CreateProductID sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     fileSystem: 'datalake',",
+						"     folderPath: 'Gold/Product',",
+						"     truncate: true,",
+						"     partitionFileNames:['Product.parquet'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> SinkToGold"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ProductDatabaseToGoldFileSource')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "DataLake",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SourceSilver"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "DataLake",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SinkToGold"
+						}
+					],
+					"transformations": [
+						{
+							"name": "aggregate1"
+						},
+						{
+							"name": "CreateFileID"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          OrderID as integer,",
+						"          Product as string,",
+						"          QuantityOrdered as integer,",
+						"          PriceEach as double,",
+						"          OrderDate as timestamp,",
+						"          PurchaseStreet as string,",
+						"          PurchaseCity as string,",
+						"          PurchaseState as string,",
+						"          PurchaseZipCode as string,",
+						"          FileName as string,",
+						"          LoadDate as date",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet',",
+						"     fileSystem: 'datalake',",
+						"     wildcardPaths:['Silver']) ~> SourceSilver",
+						"SourceSilver aggregate(groupBy(FileName),",
+						"     LoadDate = last(LoadDate)) ~> aggregate1",
+						"aggregate1 keyGenerate(output(FileID as long),",
+						"     startAt: 1L,",
+						"     stepValue: 1L) ~> CreateFileID",
+						"CreateFileID sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     fileSystem: 'datalake',",
+						"     folderPath: 'Gold/FileSource',",
+						"     truncate: true,",
+						"     partitionFileNames:['FileSorce.parquet'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> SinkToGold"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ProductDatabaseToSilver')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "DataLake",
+								"type": "LinkedServiceReference"
+							},
+							"name": "FromBronze"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "DataLake",
+								"type": "LinkedServiceReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "ChangeDataType"
+						},
+						{
+							"name": "FilterOrderID"
+						},
+						{
+							"name": "RemoveDuplicate"
+						},
+						{
+							"name": "AddAddressParts"
+						},
+						{
+							"name": "SelectFinalColumns"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          OrderID as string,",
+						"          Product as string,",
+						"          QuantityOrdered as string,",
+						"          PriceEach as string,",
+						"          OrderDate as string,",
+						"          PurchaseAddress as string,",
+						"          FileName as string,",
+						"          LoadDate as date",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet',",
+						"     fileSystem: 'datalake',",
+						"     wildcardPaths:['Bronze/ProductDatabase']) ~> FromBronze",
+						"RemoveDuplicate cast(output(",
+						"          mycols as string,",
+						"          OrderID as integer,",
+						"          QuantityOrdered as integer,",
+						"          PriceEach as double,",
+						"          OrderDate as timestamp 'MM/dd/yy HH:mm',",
+						"          PurchaseAddress as string",
+						"     ),",
+						"     errors: true) ~> ChangeDataType",
+						"FromBronze filter(isInteger(OrderID)) ~> FilterOrderID",
+						"FilterOrderID aggregate(groupBy(mycols = sha2(256,columns())),",
+						"     each(match(true()), $$ = first($$))) ~> RemoveDuplicate",
+						"ChangeDataType derive(PurchaseStreetAddress = at(split(PurchaseAddress,','),1),",
+						"          PurchaseCity = at(split(PurchaseAddress,','),2),",
+						"          PutrchaseState = trim(at(split(trim(at(split(PurchaseAddress,','),3)),' '),1)),",
+						"          PurchaseZipCode = trim(at(split(trim(at(split(PurchaseAddress,','),3)),' '),2))) ~> AddAddressParts",
+						"AddAddressParts select(mapColumn(",
+						"          OrderID,",
+						"          Product,",
+						"          QuantityOrdered,",
+						"          PriceEach,",
+						"          OrderDate,",
+						"          PurchaseStreet = PurchaseStreetAddress,",
+						"          PurchaseCity,",
+						"          PurchaseState = PutrchaseState,",
+						"          PurchaseZipCode,",
+						"          FileName,",
+						"          LoadDate",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SelectFinalColumns",
+						"SelectFinalColumns sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     fileSystem: 'datalake',",
+						"     folderPath: 'Silver/',",
+						"     truncate: true,",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ToGoldPurchaseAddress')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
@@ -321,63 +753,6 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/SourceOrders')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LS_SQLDB_SOURCE",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [],
-				"typeProperties": {}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/TargetOrders')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LS_SQLDB_SINK",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [
-					{
-						"name": "OrderID",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "CustomerName",
-						"type": "varchar"
-					},
-					{
-						"name": "OrderAmount",
-						"type": "decimal",
-						"precision": 10,
-						"scale": 2
-					},
-					{
-						"name": "LastModifiedDate",
-						"type": "datetime",
-						"precision": 23,
-						"scale": 3
-					}
-				],
-				"typeProperties": {
-					"schema": "dbo",
-					"table": "Target_Orders"
-				}
-			},
-			"dependsOn": []
-		},
-		{
 			"name": "[concat(parameters('factoryName'), '/CSVintoTable')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -446,6 +821,112 @@
 									"Schema": "dbo",
 									"TableName": "planes"
 								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/IncLoadWithoutWatermark')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Target",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": " SELECT isnull(max([LastModifiedDate]),'1900-01-01 00:00:00') as LatestDate\n FROM [dbo].[Target_Orders]",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "TargetOrders",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						}
+					},
+					{
+						"name": "CompareAndLoadingGreaterThanMaxIn Target",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Target",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": {
+									"value": "SELECT *\nFROM dbo.Source_Orders\nwhere LastModifiedDate>'@{activity('Target').output.firstRow.LatestDate}'",
+									"type": "Expression"
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"writeBehavior": "upsert",
+								"upsertSettings": {
+									"useTempDB": true,
+									"keys": [
+										"OrderID"
+									]
+								},
+								"sqlWriterUseTableLock": false,
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "SourceOrders",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "TargetOrders",
+								"type": "DatasetReference",
+								"parameters": {}
 							}
 						]
 					}
@@ -734,7 +1215,7 @@
 							"source": {
 								"type": "AzureSqlSource",
 								"sqlReaderQuery": {
-									"value": "select * \nfrom @{pipeline().parameters.TableName}\nwhere @{pipeline().parameters.WatermarkColumn}>'@{activity('LookupWatermarkTable').output.firstRow.WatermarkValue}' or @{pipeline().parameters.WatermarkColumn}<='@{activity('Lookup_FileSource').output.firstRow.LatestDate}'",
+									"value": "select * \nfrom @{pipeline().parameters.TableName}\nwhere @{pipeline().parameters.WatermarkColumn}>'@{activity('LookupWatermarkTable').output.firstRow.WatermarkValue}' ",
 									"type": "Expression"
 								},
 								"queryTimeout": "02:00:00",
@@ -771,7 +1252,206 @@
 									"TableName": {
 										"value": "@pipeline().parameters.TableName",
 										"type": "Expression"
-									}
+									},
+									"Schema": "Stage"
+								}
+							}
+						]
+					},
+					{
+						"name": "Stored procedure1",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Copy data1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[update_watermark_table]",
+							"storedProcedureParameters": {
+								"lastmodifytime": {
+									"value": {
+										"value": "@activity('Lookup_FileSource').output.firstRow.LatestDate",
+										"type": "Expression"
+									},
+									"type": "DateTime"
+								},
+								"TableName": {
+									"value": {
+										"value": "@activity('LookupWatermarkTable').output.firstRow.TableName",
+										"type": "Expression"
+									},
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureSqlDatabaseTable",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"TableName": {
+						"type": "string"
+					},
+					"WatermarkColumn": {
+						"type": "string"
+					},
+					"Schema": {
+						"type": "string"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/IncrementLoad_Watermark_Parame_copy1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "LookupWatermarkTable",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": {
+									"value": "select TableName,WatermarkValue\nfrom dbo.WatermarkTable\nwhere TableName='@{pipeline().parameters.TableName}'",
+									"type": "Expression"
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "AzureSqlTable",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						}
+					},
+					{
+						"name": "Lookup_FileSource",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": {
+									"value": "select max(@{pipeline().parameters.WatermarkColumn}) as LatestDate\nfrom @{pipeline().parameters.TableName}",
+									"type": "Expression"
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "AzureSqlTable",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						}
+					},
+					{
+						"name": "Copy data1",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "LookupWatermarkTable",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Lookup_FileSource",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": {
+									"value": "select * \nfrom @{pipeline().parameters.TableName}\nwhere @{pipeline().parameters.WatermarkColumn}>'@{activity('LookupWatermarkTable').output.firstRow.WatermarkValue}' ",
+									"type": "Expression"
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "AzureSqlTable",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "AzureSqlTable2",
+								"type": "DatasetReference",
+								"parameters": {
+									"TableName": {
+										"value": "@pipeline().parameters.TableName",
+										"type": "Expression"
+									},
+									"Schema": "Stage"
 								}
 							}
 						]
@@ -836,6 +1516,374 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/IncrementLoad_Watermark_copy1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "LookupWatermarkTable",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "AzureSqlTable",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						}
+					},
+					{
+						"name": "Lookup_FileSource",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "select max(lastmodifytime) as LatestDate\nfrom dbo.file_source",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "AzureSqlTable",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						}
+					},
+					{
+						"name": "Copy data1",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "LookupWatermarkTable",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Lookup_FileSource",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": {
+									"value": "select * from file_source \nwhere lastmodifytime>'@{activity('LookupWatermarkTable').output.firstRow.WatermarkValue}' and lastmodifytime<='@{activity('Lookup_FileSource').output.firstRow.LatestDate}'",
+									"type": "Expression"
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "AzureSqlTable",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DS_Sink_Watermark",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": {
+										"value": "@concat('File ',pipeline().RunId)",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					},
+					{
+						"name": "Stored procedure1",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Copy data1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[update_watermark_table]",
+							"storedProcedureParameters": {
+								"lastmodifytime": {
+									"value": {
+										"value": "@activity('Lookup_FileSource').output.firstRow.LatestDate",
+										"type": "Expression"
+									},
+									"type": "Datetime"
+								},
+								"TableName": {
+									"value": {
+										"value": "@activity('LookupWatermarkTable').output.firstRow.TableName",
+										"type": "Expression"
+									},
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureSqlDatabaseTable",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/IncrementLoad_Watermark_copy2')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "LookupWatermarkTable",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "AzureSqlTable",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						}
+					},
+					{
+						"name": "Lookup_FileSource",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "select max(lastmodifytime) as LatestDate\nfrom dbo.file_source",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "AzureSqlTable",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						}
+					},
+					{
+						"name": "Copy data1",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "LookupWatermarkTable",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Lookup_FileSource",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": {
+									"value": "select * from file_source \nwhere lastmodifytime>'@{activity('LookupWatermarkTable').output.firstRow.WatermarkValue}' and lastmodifytime<='@{activity('Lookup_FileSource').output.firstRow.LatestDate}'",
+									"type": "Expression"
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "AzureSqlTable",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DS_Sink_Watermark",
+								"type": "DatasetReference",
+								"parameters": {
+									"FileName": {
+										"value": "@concat('File ',pipeline().RunId)",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					},
+					{
+						"name": "Stored procedure1",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Copy data1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[update_watermark_table]",
+							"storedProcedureParameters": {
+								"lastmodifytime": {
+									"value": {
+										"value": "@activity('Lookup_FileSource').output.firstRow.LatestDate",
+										"type": "Expression"
+									},
+									"type": "Datetime"
+								},
+								"TableName": {
+									"value": {
+										"value": "@activity('LookupWatermarkTable').output.firstRow.TableName",
+										"type": "Expression"
+									},
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureSqlDatabaseTable",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/IncrementalLoading')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -878,7 +1926,9 @@
 				},
 				"annotations": []
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/IncrementalLoading')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/PerformingUpsert')]",
@@ -968,7 +2018,9 @@
 				},
 				"annotations": []
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/ProductDatabaseToBronze')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/ProductDatabaseToGold')]",
@@ -1125,6 +2177,8 @@
 				"annotations": []
 			},
 			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/ProductDatabaseToGold')]",
+				"[concat(variables('factoryId'), '/dataflows/ProductDatabaseToGoldFileSource')]",
 				"[concat(variables('factoryId'), '/dataflows/ToGoldPurchaseAddress')]",
 				"[concat(variables('factoryId'), '/dataflows/ToGoldSalesOrderFact')]"
 			]
@@ -1171,320 +2225,8 @@
 				},
 				"annotations": []
 			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/SqlProductDatabaseToSilver')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Copy To SQL",
-						"type": "Copy",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "ParquetSource",
-								"storeSettings": {
-									"type": "AzureBlobFSReadSettings",
-									"recursive": true,
-									"wildcardFolderPath": "Bronze/ProductDatabase/",
-									"wildcardFileName": "*.parquet",
-									"enablePartitionDiscovery": false
-								},
-								"formatSettings": {
-									"type": "ParquetReadSettings"
-								}
-							},
-							"sink": {
-								"type": "AzureSqlSink",
-								"preCopyScript": "DROP TABLE if exists Stage.SalesOrderTemp\n\ncreate table Stage.SalesOrderTemp\n(OrderID varchar(max),\n Product varchar(max),\n QuantityOrdered varchar(max),\n PriceEach varchar(max),\n OrderDate varchar(max),\n PurchaseAddress varchar(max),\n FileName varchar(max),\n LoadDate varchar(max)\n)",
-								"writeBehavior": "insert",
-								"sqlWriterUseTableLock": false,
-								"disableMetricsCollection": false
-							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "AzureDataLakeParquet",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "AzureSqlDatabaseTable",
-								"type": "DatasetReference",
-								"parameters": {
-									"Schema": "Stage",
-									"TableName": "SalesOrderTemp"
-								}
-							}
-						]
-					},
-					{
-						"name": "SalesOrderLoad",
-						"type": "SqlServerStoredProcedure",
-						"dependsOn": [
-							{
-								"activity": "Copy To SQL",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"storedProcedureName": "[[Stage].[SalesOrderLoad]"
-						},
-						"linkedServiceName": {
-							"referenceName": "AzureSqlDatabaseTable",
-							"type": "LinkedServiceReference"
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"annotations": []
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ToGoldPurchaseAddress')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "ToGoldPurchaseAddress",
-						"type": "ExecuteDataFlow",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataflow": {
-								"referenceName": "ToGoldPurchaseAddress",
-								"type": "DataFlowReference",
-								"parameters": {},
-								"datasetParameters": {
-									"SourceSilver": {},
-									"SinkToGold": {}
-								}
-							},
-							"staging": {},
-							"compute": {
-								"coreCount": 8,
-								"computeType": "General"
-							},
-							"traceLevel": "Fine"
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"annotations": []
-			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/ToGoldPurchaseAddress')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/IncLoadWithoutWatermark')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Target",
-						"type": "Lookup",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "AzureSqlSource",
-								"sqlReaderQuery": " SELECT isnull(max([LastModifiedDate]),'1900-01-01 00:00:00') as LatestDate\n FROM [dbo].[Target_Orders]",
-								"queryTimeout": "02:00:00",
-								"partitionOption": "None"
-							},
-							"dataset": {
-								"referenceName": "TargetOrders",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						}
-					},
-					{
-						"name": "CompareAndLoadingGreaterThanMaxIn Target",
-						"type": "Copy",
-						"dependsOn": [
-							{
-								"activity": "Target",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "AzureSqlSource",
-								"sqlReaderQuery": {
-									"value": "SELECT *\nFROM dbo.Source_Orders\nwhere LastModifiedDate>'@{activity('Target').output.firstRow.LatestDate}'",
-									"type": "Expression"
-								},
-								"queryTimeout": "02:00:00",
-								"partitionOption": "None"
-							},
-							"sink": {
-								"type": "AzureSqlSink",
-								"writeBehavior": "upsert",
-								"upsertSettings": {
-									"useTempDB": true,
-									"keys": [
-										"OrderID"
-									]
-								},
-								"sqlWriterUseTableLock": false,
-								"disableMetricsCollection": false
-							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "SourceOrders",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "TargetOrders",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/TargetOrders')]",
-				"[concat(variables('factoryId'), '/datasets/SourceOrders')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ProductDatabaseLoad')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "SqlProductDatabaseToSilver",
-						"type": "ExecutePipeline",
-						"dependsOn": [],
-						"policy": {
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"pipeline": {
-								"referenceName": "SqlProductDatabaseToSilver",
-								"type": "PipelineReference"
-							},
-							"waitOnCompletion": true,
-							"parameters": {}
-						}
-					},
-					{
-						"name": "SQLProductDatabaseToGold",
-						"type": "ExecutePipeline",
-						"dependsOn": [
-							{
-								"activity": "SqlProductDatabaseToSilver",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"pipeline": {
-								"referenceName": "SQLProductDatabaseToGold",
-								"type": "PipelineReference"
-							},
-							"waitOnCompletion": true,
-							"parameters": {}
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/SqlProductDatabaseToSilver')]"
+				"[concat(variables('factoryId'), '/dataflows/ProductDatabaseToSilver')]"
 			]
 		}
 	]
