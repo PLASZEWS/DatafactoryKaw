@@ -24,7 +24,8 @@
 					"dataset": {
 						"referenceName": "AzureSqlTable",
 						"type": "DatasetReference"
-					}
+					},
+					"firstRowOnly": false
 				}
 			},
 			{
@@ -41,7 +42,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@activity('ListTables').output.firstRow",
+						"value": "@activity('ListTables').output.value",
 						"type": "Expression"
 					},
 					"isSequential": true,
