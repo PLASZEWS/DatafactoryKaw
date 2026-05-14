@@ -32,8 +32,79 @@
 					},
 					"firstRowOnly": false
 				}
+			},
+			{
+				"name": "ForEachEmail",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup1').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Set Emails",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Set tmpEmails",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "Emails",
+								"value": {
+									"value": "@variables('tmpEmails')",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Set tmpEmails",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "tmpEmails",
+								"value": {
+									"value": "@concat(item().Email,';',variables('Emails'))",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
 			}
 		],
+		"variables": {
+			"Emails": {
+				"type": "String"
+			},
+			"tmpEmails": {
+				"type": "String"
+			}
+		},
 		"annotations": []
 	}
 }
